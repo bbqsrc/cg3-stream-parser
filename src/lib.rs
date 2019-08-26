@@ -3,8 +3,8 @@ use regex::Regex;
 use serde_derive::Serialize;
 
 lazy_static! {
-    static ref RE_WORD_FORM: Regex = Regex::new(r#"^"<(.*?)>"\s*(.*)?$"#).unwrap();
-    static ref RE_BASE_FORM: Regex = Regex::new(r#"^\s+"(.*?)"\s*(.*)$"#).unwrap();
+    static ref RE_WORD_FORM: Regex = Regex::new(r#"^"<(.*)>"(?:\s(.*)?)?$"#).unwrap();
+    static ref RE_BASE_FORM: Regex = Regex::new(r#"^\s+"(.*)"(?:\s(.*)?)?$"#).unwrap();
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn basic() {
-        let stream = r#"""
+        let stream = r#"
 some garbage
 "<They>" TAG1 TAG2
     "they" <*> PRON PERS NOM PL3 SUBJ
@@ -118,7 +118,7 @@ garbage
 "<bear>"
     "bear" N NOM SG
 "<.>"
-        """#;
+        "#;
 
         let foo = from_string(stream);
         println!("{}", serde_json::to_string(&foo).unwrap());
@@ -126,7 +126,7 @@ garbage
 
     #[test]
     fn basic2() {
-        let stream = r#"""
+        let stream = r#"
 "<same>"
 	"sáve" N <NomGenSg> Sem/Dummytag Sg Nom <W:21.3018> <WA:15.3018> <spelled> "<sáve>" @SUBJ> &SUGGESTWF &typo
 	"sále" N <NomGenSg> Sem/Build-part Sg Nom <W:21.3018> <WA:15.3018> <spelled> "<sále>" @SUBJ> &SUGGESTWF &typo
@@ -139,9 +139,53 @@ garbage
 	"heallat" Ex/V Ex/IV Der/PassS <mv> V <0> IV Ind Prs Sg3 <W:0.0> @+FMAINV
 "<.>"
 	"." CLB <W:0.0> <NoSpaceAfterPunctMark>
-        """#;
+        "#;
 
         let foo = from_string(stream);
         println!("{}", serde_json::to_string(&foo).unwrap());
+    }
+
+
+    #[test]
+    fn pathological() {
+        let stream = r#"
+"<">"
+	""" PUNCT <W:0.0>
+"<">"
+	""" PUNCT <W:0.0>
+"<>>"
+	">" PUNCT LEFT <W:0.0>
+"<">"
+	""" PUNCT <W:0.0>
+"<<>"
+	"<" PUNCT LEFT <W:0.0>
+"<>>"
+	">" PUNCT LEFT <W:0.0>
+:
+"<<>"
+	"<" PUNCT LEFT <W:0.0>
+"<">"
+	""" PUNCT <W:0.0>
+"<<>"
+	"<" PUNCT LEFT <W:0.0> <spaceAfterParenBeg> &space-after-paren-beg &space-before-paren-end &LINK ID:9 R:RIGHT:10
+	"<" PUNCT LEFT <W:0.0> <spaceAfterParenBeg> "<<>>" &space-after-paren-beg &SUGGESTWF ID:9 R:RIGHT:10
+:
+"<>>"
+	">" PUNCT LEFT <W:0.0> <spaceBeforeParenEnd> &LINK &space-after-paren-beg &space-before-paren-end ID:10 R:LEFT:9
+"<">"
+	""" PUNCT <W:0.0>
+"<>>"
+	">" PUNCT LEFT <W:0.0>
+:
+"<<>"
+	"<" PUNCT LEFT <W:0.0>
+"<">"
+	""" PUNCT <W:0.0>
+"<>>"
+	">" PUNCT LEFT <W:0.0>
+        "#;
+
+        let foo = from_string(stream);
+        println!("{}", serde_json::to_string_pretty(&foo).unwrap());
     }
 }
