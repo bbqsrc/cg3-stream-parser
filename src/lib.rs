@@ -3,8 +3,8 @@ use regex::Regex;
 use serde_derive::Serialize;
 
 lazy_static! {
-    static ref RE_WORD_FORM: Regex = Regex::new(r#"^"<(.*)>"(?:\s(.*)?)?$"#).unwrap();
-    static ref RE_BASE_FORM: Regex = Regex::new(r#"^\s+"(.*)"(?:\s(.*)?)?$"#).unwrap();
+    static ref RE_WORD_FORM: Regex = Regex::new(r#"^"<(.*?)>"(?:\s(.*)?)?$"#).unwrap();
+    static ref RE_BASE_FORM: Regex = Regex::new(r#"^\s+"(.*?)"(?:\s(.*)?)?$"#).unwrap();
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -121,7 +121,7 @@ garbage
         "#;
 
         let foo = from_string(stream);
-        println!("{}", serde_json::to_string(&foo).unwrap());
+        println!("{}", serde_json::to_string_pretty(&foo).unwrap());
     }
 
     #[test]
@@ -142,7 +142,7 @@ garbage
         "#;
 
         let foo = from_string(stream);
-        println!("{}", serde_json::to_string(&foo).unwrap());
+        println!("{}", serde_json::to_string_pretty(&foo).unwrap());
     }
 
 
